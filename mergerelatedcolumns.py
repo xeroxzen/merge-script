@@ -82,3 +82,29 @@ def write_to_csv(dataframes):
     """
     for dataframe in dataframes:
         dataframe.to_csv('merged.csv', index=False)
+
+def write_to_json(dataframes):
+    """
+    Write the merged dataframe to a new JSON file
+    :param dataframes: list of dataframes
+    :return: None
+    """
+    for dataframe in dataframes:
+        dataframe.to_json('merged.json', orient='records')
+
+
+def main():
+    """
+    Main function
+    :return: None
+    """
+    csv_files = get_csv_files()
+    dataframes = read_csv_files(csv_files)
+    dataframes = compare_dataframes(dataframes)
+    dataframes = check_for_matching_values(dataframes)
+    dataframes = merge_dataframes(dataframes)
+    write_to_csv(dataframes)
+    write_to_json(dataframes)
+
+if __name__ == '__main__':
+    main()
