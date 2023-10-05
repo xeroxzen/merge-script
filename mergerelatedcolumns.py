@@ -3,7 +3,7 @@
 @program: Merge CSV files that have related columns in common and have row values that match
 
 Breaking down the problem:
-1. Get all the CSV files in the directory
+1. Get all the CSV files in the directory, the directory can be specified as a command line argument
 2. Read the CSV files into a dataframe
 3. Compare the dataframes
 4. Check for matching values in the rows
@@ -17,13 +17,13 @@ import glob
 import csv
 import json
 
-def get_csv_files():
+def get_csv_files(directory):
     """
-    Get all the CSV files in the directory
+    Get all the CSV files in the directory, the directory can be specified as a command line argument
     :return: list of CSV files
     """
     csv_files = []
-    for file in glob.glob("*.csv"):
+    for file in glob.glob(os.path.join(directory, '*.csv')):
         csv_files.append(file)
     return csv_files
 
