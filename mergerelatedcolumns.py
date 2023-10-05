@@ -61,3 +61,24 @@ def check_for_matching_values(dataframes):
             if i != j:
                 dataframes[i]['matching_values'] = dataframes[i].apply(lambda row: row == dataframes[j], axis=1)
     return dataframes
+
+def merge_dataframes(dataframes):
+    """
+    If the percentage of matching values is greater than 50%, merge the dataframes
+    :param dataframes: list of dataframes
+    :return: list of dataframes
+    """
+    for i in range(len(dataframes)):
+        for j in range(len(dataframes)):
+            if i != j:
+                dataframes[i] = dataframes[i].merge(dataframes[j], on='id')
+    return dataframes
+
+def write_to_csv(dataframes):
+    """
+    Write the merged dataframe to a new CSV file
+    :param dataframes: list of dataframes
+    :return: None
+    """
+    for dataframe in dataframes:
+        dataframe.to_csv('merged.csv', index=False)
