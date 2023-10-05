@@ -26,3 +26,15 @@ def get_csv_files():
     for file in glob.glob("*.csv"):
         csv_files.append(file)
     return csv_files
+
+def read_csv_files(csv_files):
+    """
+    Read the CSV files into a dataframe
+    :param csv_files: list of CSV files
+    :return: list of dataframes
+    """
+    dataframes = []
+    for file in csv_files:
+        dataframes.append(pd.read_csv(file))
+    return dataframes
+
