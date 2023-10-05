@@ -5,54 +5,83 @@
 Breaking down the problem:
 1. Get two CSV files in the directory, the files can be passed as command line arguments or the program can prompt the user to enter the file names
 2. Read the CSV files into a dataframe
-3. Compare the dataframes e.g
-    i. if the first dataframe has 5 columns, check if the second dataframe has 5 columns as well.
-    ii. Check if the columns have the same names. If the columns have different names, check if the columns have the
-    same data type.
-    iii. If the columns have different data types, check if the columns have the same number of rows.
+3. Compare the dataframes to see if they have related columns in common. Use either the id, userid, username or email column as the key for comparison.
 4. Check for matching values in the rows. Use email or username as the key for match search. Sometimes the email or username column may not be present in the CSV file, in that case use the id column.
 5. If the percentage of matching values is greater than 50%, merge the dataframes. Use the id or userid column as the key.
 6. Write the merged dataframe to a new CSV file
 """
 
-# Importing the required libraries
 import pandas as pd
 import sys
 
 def merge_csv_files(file1, file2):
     """
-    This function takes two CSV files as arguments and merges them if they have related columns and matching values in the rows.
-    :param file1: The first CSV file
-    :param file2: The second CSV file
-    :return: A new CSV file with the merged dataframes
+    This function merges two CSV files that have related columns in common and have row values that match
+    :param file1: CSV file 1
+    :param file2: CSV file 2
+    :return: merged CSV file
     """
-    # Reading the CSV files into dataframes
+    # Read the CSV files into a dataframe
     df1 = pd.read_csv(file1)
     df2 = pd.read_csv(file2)
 
-    if len(df1.columns) == len(df2.columns):
-        if df1.columns.tolist() == df2.columns.tolist():
-            if df1.dtypes.tolist() == df2.dtypes.tolist():
-                if len(df1) == len(df2):
-                    if df1.equals(df2):
-                        merged_df = pd.concat([df1, df2]).drop_duplicates().reset_index(drop=True)
-                        merged_df.to_csv('merged.csv', index=False)
-                        print("The CSV files have been merged successfully!")
-                    else:
-                        print("The CSV files have different values in the rows!")
-                else:
-                    print("The CSV files have different number of rows!")
-            else:
-                print("The CSV files have different data types!")
-        else:
-            print("The CSV files have different column names!")
+    # Compare the dataframes to see if they have related columns in common. Use either the id, userid, username or email column as the key for comparison.
+    if 'id' in df1.columns and 'id' in df2.columns:
+        if df1['id'].equals(df2['id']):
+            key = 'id'
+    elif 'id' in df1.columns and 'userid' in df2.columns:
+        if df1['id'].equals(df2['userid']):
+            key = 'userid'
+    elif 'userid' in df1.columns and 'id' in df2.columns:
+        if df1['userid'].equals(df2['id']):
+            key = 'id'
+    elif 'userid' in df1.columns and 'userid' in df2.columns:
+        if df1['userid'].equals(df2['userid']):
+            key = 'userid'
+    elif 'username' in df1.columns and 'username' in df2.columns:
+        if df1['username'].equals(df2['username']):
+            key = 'username'
+    elif 'email' in df1.columns and 'email' in df2.columns:
+        if df1['email'].equals(df2['email']):
+            key = 'email'
     else:
-        print("The CSV files have different number of columns!")
+        print("The dataframes do not have related columns in common")
 
-if __name__ == "__main__":
-    # Getting the CSV file names from the command line arguments
-    file1 = input("Enter the first CSV file name: ")
-    file2 = input("Enter the second CSV file name: ")
-    # Calling the merge_csv_files function
-    merge_csv_files(file1, file2)
+    # for col in df1.columns:
+    #     if col in df2.columns:
+    #         key = col
+    #         break
 
+#     Check matching values in the rows. Find a secondary key to use for match search. Use email column or email
+#     regex as the key for secondary match search.
+    if 'email' in df1.columns and 'email' in df2.columns:
+        if df1['email'].equals(df2['email']):
+            secondary_key = 'email'
+    else:
+        secondary_key = 'id'
+
+    # Calculate the percentage of matching values
+    matching_values = 0
+    for i in range(len(df1)):
+        for j in range(len(df2)):
+            if df1[key][i] == df2[secondary_key][j]:
+                matching_values += 1
+    percentage = (matching_values / len(df1)) * 100
+
+    # If the percentage of matching values is greater than 50%, merge the dataframes. Use the id or userid column as
+    # the key.
+    if percentage > 50:
+        merged_df = pd.merge(df1, df2, on=key)
+        merged_df.to_csv('merged.csv', index=False)
+        print("The dataframes have been merged successfully")
+
+if __name__ == '__main__':
+    # Get two CSV files in the directory, the files can be passed as command line arguments or the program can prompt the user to enter the file names
+    if len(sys.argv) == 3:
+        file1 = sys.argv[1]
+        file2 = sys.argv[2]
+        merge_csv_files(file1, file2)
+    else:
+        file1 = input("Enter the first CSV file name: ")
+        file2 = input("Enter the second CSV file name: ")
+        merge_csv_files(file1, file2)
