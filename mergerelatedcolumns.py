@@ -50,3 +50,14 @@ def compare_dataframes(dataframes):
                 dataframes[i] = dataframes[i].merge(dataframes[j], on='id')
     return dataframes
 
+def check_for_matching_values(dataframes):
+    """
+    Check for matching values in the rows
+    :param dataframes: list of dataframes
+    :return: list of dataframes
+    """
+    for i in range(len(dataframes)):
+        for j in range(len(dataframes)):
+            if i != j:
+                dataframes[i]['matching_values'] = dataframes[i].apply(lambda row: row == dataframes[j], axis=1)
+    return dataframes
