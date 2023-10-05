@@ -38,3 +38,15 @@ def read_csv_files(csv_files):
         dataframes.append(pd.read_csv(file))
     return dataframes
 
+def compare_dataframes(dataframes):
+    """
+    Compare the dataframes
+    :param dataframes: list of dataframes
+    :return: list of dataframes
+    """
+    for i in range(len(dataframes)):
+        for j in range(len(dataframes)):
+            if i != j:
+                dataframes[i] = dataframes[i].merge(dataframes[j], on='id')
+    return dataframes
+
