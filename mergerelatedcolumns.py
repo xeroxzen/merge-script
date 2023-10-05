@@ -30,20 +30,12 @@ def merge_csv_files(file1, file2):
     df1 = pd.read_csv(file1)
     df2 = pd.read_csv(file2)
 
-    # Comparing the dataframes
-    # Checking if the dataframes have the same number of columns
     if len(df1.columns) == len(df2.columns):
-        # Checking if the columns have the same names
         if df1.columns.tolist() == df2.columns.tolist():
-            # Checking if the columns have the same data type
             if df1.dtypes.tolist() == df2.dtypes.tolist():
-                # Checking if the columns have the same number of rows
                 if len(df1) == len(df2):
-                    # Checking if the rows have matching values
                     if df1.equals(df2):
-                        # Merging the dataframes
                         merged_df = pd.concat([df1, df2]).drop_duplicates().reset_index(drop=True)
-                        # Writing the merged dataframe to a new CSV file
                         merged_df.to_csv('merged.csv', index=False)
                         print("The CSV files have been merged successfully!")
                     else:
