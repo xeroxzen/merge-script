@@ -51,8 +51,8 @@ def merge_csv_files(file1, file2):
 
 if __name__ == "__main__":
     # Getting the CSV file names from the command line arguments
-    file1 = input("Enter the first CSV file name: ", sys.argv[1])
-    file2 = input("Enter the second CSV file name: ", sys.argv[2])
+    file1 = input("Enter the first CSV file name: ")
+    file2 = input("Enter the second CSV file name: ")
     # Calling the merge_csv_files function
     merge_csv_files(file1, file2)
 
