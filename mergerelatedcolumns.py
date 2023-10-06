@@ -1,18 +1,5 @@
-"""
-@author: Andile Mbele
-@program: Merge CSV files that have related columns in common and have row values that match
-
-Breaking down the problem:
-1. Get two CSV files in the directory, the files can be passed as command line arguments or the program can prompt the user to enter the file names
-2. Read the CSV files into a dataframe
-3. Compare the dataframes to see if they have related columns in common. Use either the id, userid, username or email column as the key for comparison.
-4. Check for matching values in the rows. Use email or username as the key for match search. Sometimes the email or username column may not be present in the CSV file, in that case use the id column.
-5. If the percentage of matching values is greater than 50%, merge the dataframes. Use the id or userid column as the key.
-6. Write the merged dataframe to a new CSV file
-"""
-
 import pandas as pd
-import sys
+import argparse
 
 def merge_csv_files(file1, file2):
     """
@@ -59,10 +46,23 @@ def merge_csv_files(file1, file2):
 
 if __name__ == '__main__':
     # Get two CSV files in the directory, the files can be passed as command line arguments or the program can prompt the user to enter the file names
-    if len(sys.argv) == 3:
-        file1 = sys.argv[1]
-        file2 = sys.argv[2]
-        merge_csv_files(file1, file2)
+    parser = argparse.ArgumentParser(description='Merge CSV files')
+    parser.add_argument('--dir', type=str, help='Directory containing the CSV files')
+    parser.add_argument('--f', type=str, action='append', help='CSV file path')
+    args = parser.parse_args()
+
+    # If the directory argument is passed, merge all CSV files in the directory
+    if args.dir:
+        import os
+        csv_files = [os.path.join(args.dir, f) for f in os.listdir(args.dir) if f.endswith('.csv')]
+        for i in range(len(csv_files) - 1):
+            merge_csv_files(csv_files[i], csv_files[i + 1])
+    # If the file argument is passed, merge the specified CSV files
+    elif args.f:
+        if len(args.f) != 2:
+            raise ValueError('Must pass two CSV files as arguments')
+        merge_csv_files(args.f[0], args.f[1])
+    # Otherwise, prompt the user to enter the file names
     else:
         file1 = input("Enter the first CSV file name: ")
         file2 = input("Enter the second CSV file name: ")
