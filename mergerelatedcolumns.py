@@ -22,10 +22,21 @@ def merge_csv_files(file1, file2):
     # Get a list of the common columns between the two dataframes.
     common_columns = set(df1.columns).intersection(df2.columns)
 
-    # If there are no common columns between the two dataframes, check if the two files have the words `user` or `usermeta` in their names.
+    # If there are no common columns, check if the two files have the words "user" or "usermeta" in their file names.
     if not common_columns:
         if 'user' in file1 or 'usermeta' in file1 and 'user' in file2 or 'usermeta' in file2:
-            common_columns = {'id', 'userid'}
+            # If so, set the key column to "id" or "userid", whichever is present in both dataframes.
+            if 'id' in df1.columns and 'userid' in df2.columns:
+                key_column = 'id'
+            elif 'userid' in df1.columns and 'id' in df2.columns:
+                key_column = 'userid'
+            else:
+                print("Could not find a key column for merging the dataframes.")
+                return None
+        else:
+            print(
+                "The dataframes do not have any common columns and do not have the words 'user' or 'usermeta' in their file names.")
+            return None
 
     # Check if the two dataframes have any common columns.
     if not common_columns:
@@ -62,8 +73,10 @@ def merge_csv_files(file1, file2):
 
     # If the percentage of matching values is greater than 50%, merge the dataframes.
     if percentage > 50:
-        merged_df = pd.merge(df1, df2, on=key_column)
         output_dir = os.path.dirname(file1) + "/merged.csv"
+        merged_df = pd.merge(df1, df2, on=key_column)
+        merged_df = merged_df.drop_duplicates()
+        merged_df.rename (columns = {'id':'userid'}, inplace = True)
         merged_df.to_csv(output_dir, index=False)
         print("The dataframes have been merged successfully.")
     else:
