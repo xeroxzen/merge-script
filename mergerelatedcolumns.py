@@ -41,7 +41,8 @@ def merge_csv_files(file1, file2):
         # the key.
         if percentage > 50:
             merged_df = pd.merge(df1, df2, on=key)
-            merged_df.to_csv('merged.csv', index=False)
+            output_dir = os.path.dirname(file1)
+            merged_df.to_csv(os.path.join(output_dir, 'merged.csv'), index=False)
             print("The dataframes have been merged successfully")
 
 if __name__ == '__main__':
