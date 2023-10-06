@@ -26,12 +26,19 @@ def merge_csv_files(file1, file2):
         print("The dataframes do not have any common columns.")
         return None
 
-    # Find a key column to use for merging the dataframes.
+    # Find a key column to use for merging the dataframes. Use the common column with the most matching values.
     key_column = None
+    max_matching_values = 0
     for column in common_columns:
-        if df1[column].equals(df2[column]):
+        matching_values = 0
+        for i in range(len(df1)):
+            for j in range(len(df2)):
+                if df1[column][i] == df2[column][j]:
+                    matching_values += 1
+        if matching_values > max_matching_values:
+            max_matching_values = matching_values
             key_column = column
-            break
+
 
     # If a key column was not found, print an error message and return None.
     if key_column is None:
