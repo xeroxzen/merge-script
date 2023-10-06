@@ -25,7 +25,8 @@ def merge_csv_files(file1, file2):
     df1 = pd.read_csv(file1, encoding='utf-8')
     df2 = pd.read_csv(file2, encoding='utf-8')
 
-    # Compare the dataframes to see if they have related columns in common. Use either the id, userid, username or email column as the key for comparison.
+    # Compare the dataframes to see if they have related columns in common.
+    # Use either the id, userid, username or email column as the key for comparison.
     if 'id' in df1.columns and 'id' in df2.columns:
         if df1['id'].equals(df2['id']):
             key = 'id'
