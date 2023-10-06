@@ -22,6 +22,11 @@ def merge_csv_files(file1, file2):
     # Get a list of the common columns between the two dataframes.
     common_columns = set(df1.columns).intersection(df2.columns)
 
+    # If there are no common columns between the two dataframes, check if the two files have the words `user` or `usermeta` in their names.
+    if not common_columns:
+        if 'user' in file1 or 'usermeta' in file1 and 'user' in file2 or 'usermeta' in file2:
+            common_columns = {'id', 'userid'}
+
     # Check if the two dataframes have any common columns.
     if not common_columns:
         print("The dataframes do not have any common columns.")
