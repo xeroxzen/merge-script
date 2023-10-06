@@ -1,5 +1,6 @@
 import pandas as pd
 import sys
+import os
 
 
 def merge_csv_files(file1, file2):
@@ -52,11 +53,13 @@ def merge_csv_files(file1, file2):
             if df1[key_column][i] == df2[key_column][j]:
                 matching_values += 1
     percentage = (matching_values / len(df1)) * 100
+    print("The percentage of matching values is: " + str(percentage) + "%" )
 
     # If the percentage of matching values is greater than 50%, merge the dataframes.
     if percentage > 50:
         merged_df = pd.merge(df1, df2, on=key_column)
-        merged_df.to_csv('merged.csv', index=False)
+        output_dir = os.path.dirname(file1) + "/merged.csv"
+        merged_df.to_csv(output_dir, index=False)
         print("The dataframes have been merged successfully.")
     else:
         print("The percentage of matching values is less than 50%. Skipping merge.")
