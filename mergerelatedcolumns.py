@@ -25,7 +25,6 @@ def merge_csv_files(file1, file2):
     # If there are no common columns, check if the two files have the words "user" or "usermeta" in their file names.
     if not common_columns:
         if ('user' in file1 or 'usermeta' in file1) and ('user' in file2 or 'usermeta' in file2):
-            # If so, set the key column to "id" or "userid", whichever is present in both dataframes.
             if 'id' in df1.columns and 'userid' in df2.columns:
                 key_column = 'id'
             elif 'userid' in df1.columns and 'id' in df2.columns:
@@ -74,7 +73,6 @@ def merge_csv_files(file1, file2):
         output_dir = os.path.dirname(file1) + "/merged.csv"
         merged_df = pd.merge(df1, df2, on=key_column)
         merged_df = merged_df.drop_duplicates()
-        # Rename 'id' column to 'userid' in the merged dataframe if it exists.
         if 'id' in merged_df.columns:
             merged_df.rename(columns={'id': 'userid'}, inplace=True)
         merged_df.to_csv(output_dir, index=False)
@@ -86,7 +84,6 @@ def merge_csv_files(file1, file2):
 
 
 if __name__ == '__main__':
-    # Get the two CSV file names from the command line arguments.
     if len(sys.argv) == 3:
         file1 = sys.argv[1]
         file2 = sys.argv[2]
