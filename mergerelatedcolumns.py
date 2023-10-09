@@ -36,19 +36,19 @@ def merge_csv_files(file1, file2):
     # Ignore the rest of the common columns.
 
     if len(common_columns) > 1:
-        # Use the common column with the most matching values as the key column.
         key_column = None
         max_matching_values = 0
+
         for column in common_columns:
-            matching_values = 0
-            for i in range(len(df1)):
-                for j in range(len(df2)):
-                    if df1[column][i] == df2[column][j]:
-                        matching_values += 1
+            matching_values = sum(
+                1 for i in range(len(df1)) for j in range(len(df2)) if df1[column][i] == df2[column][j]
+            )
+
             if matching_values > max_matching_values:
                 max_matching_values = matching_values
                 key_column = column
-                print("The key column is: " + key_column)
+
+        print("The key column is: " + key_column)
 
         # If a key column was not found, return None.
         if key_column is None:
