@@ -78,7 +78,11 @@ def merge_csv_files(file1, file2):
     # Return the merged dataframe.
     return merged_df
 
+
 if __name__ == "__main__":
+    # Start the timer.
+    start = timeit.default_timer()
+
     # Check if the user has provided two CSV files as command line arguments.
     if len(sys.argv) != 3:
         print("Please provide two CSV files as command line arguments")
@@ -90,3 +94,8 @@ if __name__ == "__main__":
     merged_df = merge_csv_files(file1, file2)
 
     print(merged_df.head())
+
+    # Stop the timer.
+    stop = timeit.default_timer()
+    print('Time: ', stop - start)
+
