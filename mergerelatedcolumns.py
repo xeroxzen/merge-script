@@ -1,7 +1,7 @@
 import pandas as pd
 import sys
 import os
-
+import time, timeit
 
 def merge_csv_files(file1, file2):
     """
@@ -12,7 +12,7 @@ def merge_csv_files(file1, file2):
         file2: The second CSV file.
 
     Returns:
-        A merged CSV file.
+        A merged CSV file, or None if the dataframes cannot be merged.
     """
 
     # Read the CSV files into Pandas dataframes.
@@ -22,24 +22,11 @@ def merge_csv_files(file1, file2):
     # Get a list of the common columns between the two dataframes.
     common_columns = set(df1.columns).intersection(df2.columns)
 
-    # If there are no common columns, check if the two files have the words "user" or "usermeta" in their file names.
+    # If there are no common columns, return None.
     if not common_columns:
-        if ('user' in file1 or 'usermeta' in file1) and ('user' in file2 or 'usermeta' in file2):
-            if 'id' in df1.columns and 'userid' in df2.columns:
-                key_column = 'id'
-            elif 'userid' in df1.columns and 'id' in df2.columns:
-                key_column = 'userid'
-            else:
-                print("Could not find a key column for merging the dataframes.")
-                return None
-        else:
-            print(
-                "The dataframes do not have any common columns and do not have the words 'user' or 'usermeta' in their file names.")
-            return None
-    # else:
-    #     # Check if "id" and "userid" are both present in the common columns, and choose one as the key column.
-    #     if 'id' in common_columns and 'userid' in common_columns:
-    #         key_column = 'id'  # You can choose 'userid' here if you prefer.
+        print("The dataframes do not have any common columns")
+        return None
+
     else:
         # Use the common column with the most matching values as the key column.
         key_column = None
@@ -54,9 +41,8 @@ def merge_csv_files(file1, file2):
                 max_matching_values = matching_values
                 key_column = column
 
-        # If a key column was not found, print an error message and return None.
+        # If a key column was not found, return None.
         if key_column is None:
-            print("Could not find a key column for merging the dataframes.")
             return None
 
     # Calculate the percentage of matching values between the two dataframes.
@@ -66,30 +52,31 @@ def merge_csv_files(file1, file2):
             if df1[key_column][i] == df2[key_column][j]:
                 matching_values += 1
     percentage = (matching_values / len(df1)) * 100
-    print("The percentage of matching values is: " + str(percentage) + "%")
+    print("The percentage of matching values between the two dataframes is: " + str(percentage) + "%" )
 
-    # If the percentage of matching values is greater than 50%, merge the dataframes.
-    if percentage > 50:
-        output_dir = os.path.dirname(file1) + "/merged.csv"
-        merged_df = pd.merge(df1, df2, on=key_column)
-        merged_df = merged_df.drop_duplicates()
-        if 'id' in merged_df.columns:
-            merged_df.rename(columns={'id': 'userid'}, inplace=True)
-        merged_df.to_csv(output_dir, index=False)
-        print("The dataframes have been merged successfully.")
-    else:
-        print("The percentage of matching values is less than 50%. Skipping merge.")
+    # Merge the dataframes.
+    merged_df = pd.merge(df1, df2, on=key_column)
+    output_dir = os.path.dirname(file1) + "/merged.csv"
+    merged_df = merged_df.drop_duplicates()
+    merged_df.to_csv(output_dir, index=False)
+    if os.path.exists(output_dir):
+        print("The dataframes have been merged successfully")
 
+    if 'id' in merged_df.columns:
+        merged_df.rename(columns={'id': 'userid'}, inplace=True)
+
+    # Return the merged dataframe.
     return merged_df
 
+if __name__ == "__main__":
+    # Check if the user has provided two CSV files as command line arguments.
+    if len(sys.argv) != 3:
+        print("Please provide two CSV files as command line arguments")
+        sys.exit()
 
-if __name__ == '__main__':
-    if len(sys.argv) == 3:
-        file1 = sys.argv[1]
-        file2 = sys.argv[2]
-    else:
-        print("Usage: merge_csv_files.py <file1> <file2>")
-        exit(1)
+    file1 = sys.argv[1]
+    file2 = sys.argv[2]
 
-    # Merge the two CSV files.
-    merge_csv_files(file1, file2)
+    merged_df = merge_csv_files(file1, file2)
+
+    print(merged_df.head())
