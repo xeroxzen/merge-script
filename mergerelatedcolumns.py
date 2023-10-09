@@ -54,10 +54,6 @@ def merge_csv_files(file1, file2):
         if key_column is None:
             return None
 
-    else:
-        key_column = common_columns.pop()
-        print("The key column is: " + key_column)
-
 
     # else:
     #     # Use the common column with the most matching values as the key column.
