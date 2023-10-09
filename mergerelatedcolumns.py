@@ -56,8 +56,10 @@ def merge_csv_files(file1, file2):
 
     # Merge the dataframes.
     merged_df = pd.merge(df1, df2, on=key_column)
+    # Check if there are duplicates in the merged dataframe. If there are, drop them.
+    if merged_df.duplicated().any():
+        merged_df.drop_duplicates(inplace=True)
     output_dir = os.path.dirname(file1) + "/merged.csv"
-    merged_df = merged_df.drop_duplicates()
     merged_df.to_csv(output_dir, index=False)
     if os.path.exists(output_dir):
         print("The dataframes have been merged successfully")
