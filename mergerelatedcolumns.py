@@ -56,8 +56,6 @@ def merge_csv_files(file1, file2):
 
     # Merge the dataframes.
     merged_df = pd.merge(df1, df2, on=key_column)
-    # Check if there are duplicate rows in the merged dataframe. Use the userid column to see duplicates. If there are,
-    # remove them and leave one that has more data.
     if ('userid' in merged_df.columns) or ('email' in merged_df.columns):
         merged_df.drop_duplicates(subset=['userid'], keep='last', inplace=True)
         merged_df.drop_duplicates(subset=['email'], keep='last', inplace=True)
