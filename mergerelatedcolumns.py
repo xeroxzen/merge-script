@@ -48,7 +48,7 @@ def merge_csv_files(file1, file2):
             if matching_values > max_matching_values:
                 max_matching_values = matching_values
                 key_column = column
-            print("The key column is: " + key_column)
+                print("The key column is: " + key_column)
 
         # If a key column was not found, return None.
         if key_column is None:
