@@ -40,6 +40,7 @@ def merge_csv_files(file1, file2):
             if matching_values > max_matching_values:
                 max_matching_values = matching_values
                 key_column = column
+                print("The key column is: " + key_column)
 
         # If a key column was not found, return None.
         if key_column is None:
@@ -56,11 +57,9 @@ def merge_csv_files(file1, file2):
 
     # Merge the dataframes.
     merged_df = pd.merge(df1, df2, on=key_column)
-    if ('userid' in merged_df.columns) or ('email' in merged_df.columns):
-        merged_df.drop_duplicates(subset=['userid'], keep='last', inplace=True)
-        merged_df.drop_duplicates(subset=['email'], keep='last', inplace=True)
-    else:
-        merged_df.drop_duplicates(keep='last', inplace=True)
+    # If there are duplicate rows in the merged dataframe under the key_column, drop them.
+    if merged_df.duplicated(subset=key_column).any():
+        merged_df.drop_duplicates(subset=key_column, inplace=True)
 
     # combine first and last name
     if ('firstname' in merged_df.columns or 'first_name' in merged_df.columns) and ('lastname' in merged_df.columns
