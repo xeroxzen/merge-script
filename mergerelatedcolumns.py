@@ -62,6 +62,11 @@ def merge_csv_files(file1, file2):
     else:
         merged_df.drop_duplicates(keep='last', inplace=True)
 
+    # combine first and last name
+    if 'firstname' in merged_df.columns and 'lastname' in merged_df.columns:
+        merged_df['fullname'] = merged_df['firstname'] + " " + merged_df['lastname']
+        merged_df.drop(columns=['firstname', 'lastname'], inplace=True)
+
     output_dir = os.path.dirname(file1) + "/merged.csv"
     merged_df.to_csv(output_dir, index=False)
     if os.path.exists(output_dir):
