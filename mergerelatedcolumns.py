@@ -27,7 +27,15 @@ def merge_csv_files(file1, file2):
         print("The dataframes do not have any common columns")
         return None
 
-    else:
+    # If there is only one common column, use it as the key column.
+    if len(common_columns) == 1:
+        key_column = common_columns.pop()
+        print("The key column is: " + key_column)
+
+    # If there is more than one common column, use the column with the most matching values as the key column.
+    # Ignore the rest of the common columns.
+
+    if len(common_columns) > 1:
         # Use the common column with the most matching values as the key column.
         key_column = None
         max_matching_values = 0
@@ -45,6 +53,30 @@ def merge_csv_files(file1, file2):
         # If a key column was not found, return None.
         if key_column is None:
             return None
+
+    else:
+        key_column = common_columns.pop()
+        print("The key column is: " + key_column)
+
+
+    # else:
+    #     # Use the common column with the most matching values as the key column.
+    #     key_column = None
+    #     max_matching_values = 0
+    #     for column in common_columns:
+    #         matching_values = 0
+    #         for i in range(len(df1)):
+    #             for j in range(len(df2)):
+    #                 if df1[column][i] == df2[column][j]:
+    #                     matching_values += 1
+    #         if matching_values > max_matching_values:
+    #             max_matching_values = matching_values
+    #             key_column = column
+    #             print("The key column is: " + key_column)
+    #
+    #     # If a key column was not found, return None.
+    #     if key_column is None:
+    #         return None
 
     # Calculate the percentage of matching values between the two dataframes.
     matching_values = 0
