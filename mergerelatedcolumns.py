@@ -1,7 +1,7 @@
 import pandas as pd
 import sys
 import os
-import time, timeit
+import timeit
 
 def merge_csv_files(file1, file2):
     """
@@ -19,14 +19,14 @@ def merge_csv_files(file1, file2):
     df1 = pd.read_csv(file1, encoding='utf-8')
     df2 = pd.read_csv(file2, encoding='utf-8')
 
-    # Define a list of allowed PII (Personally Identifiable Information) columns.
+    # List of possible PII.
     allowed_pii_columns = ['email', 'phone', 'ssn', 'user_id', 'customer_id', 'userid', 'customer_email', 'username',
                            'phonenumber','phone_number', 'billing_phone', 'billing_phone_number',
                            'billing_phone_number', 'billing_email', 'billing_email_address', 'billing_emailaddress',
                            'shipping_phone', 'shipping_phone_number', 'shipping_email', 'shipping_email_address',
                            'address','billing_address', 'shipping_address', 'address1', 'address2', 'address3']
 
-    # Get a list of the common columns between the two dataframes.
+    # List of the common columns between the two dataframes.
     common_columns = set(df1.columns).intersection(df2.columns).intersection(allowed_pii_columns)
 
     # If there are no common columns, return None.
@@ -34,7 +34,7 @@ def merge_csv_files(file1, file2):
         print("The dataframes do not have any common columns")
         return None
 
-    # If there is only one common column, use it as the key column.
+    # If there is only one common column.
     if len(common_columns) == 1:
         key_column = common_columns.pop()
         print("The key column is: " + key_column)
@@ -57,7 +57,7 @@ def merge_csv_files(file1, file2):
 
         print("The key column is: " + key_column)
 
-        # If a key column was not found, return None.
+        # If a key column is not found, return None.
         if key_column is None:
             return None
 
