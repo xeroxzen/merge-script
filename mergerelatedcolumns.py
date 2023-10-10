@@ -19,8 +19,15 @@ def merge_csv_files(file1, file2):
     df1 = pd.read_csv(file1, encoding='utf-8')
     df2 = pd.read_csv(file2, encoding='utf-8')
 
+    # Define a list of allowed PII (Personally Identifiable Information) columns.
+    allowed_pii_columns = ['email', 'phone', 'ssn', 'user_id', 'customer_id', 'userid', 'customer_email', 'username',
+                           'phonenumber','phone_number', 'billing_phone', 'billing_phone_number',
+                           'billing_phone_number', 'billing_email', 'billing_email_address', 'billing_emailaddress',
+                           'shipping_phone', 'shipping_phone_number', 'shipping_email', 'shipping_email_address',
+                           'address','billing_address', 'shipping_address', 'address1', 'address2', 'address3']
+
     # Get a list of the common columns between the two dataframes.
-    common_columns = set(df1.columns).intersection(df2.columns)
+    common_columns = set(df1.columns).intersection(df2.columns).intersection(allowed_pii_columns)
 
     # If there are no common columns, return None.
     if not common_columns:
