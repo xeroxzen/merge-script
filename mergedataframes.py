@@ -2,11 +2,13 @@ import pandas as pd
 import os
 import sys
 import timeit
+import random
+import string
 
 
 def merge_csv_files_in_directory(directory):
-	# Create an empty dictionary to track dataframes by their filenames.
-	dataframes = {}
+	# Create a dictionary to track merged dataframes by key column.
+	merged_dataframes = {}
 
 	# List of possible PII.
 	allowed_pii_columns = ['email', 'phone', 'ssn', 'user_id', 'customer_id', 'userid', 'customer_email', 'username',
@@ -28,36 +30,36 @@ def merge_csv_files_in_directory(directory):
 				print(f"No common columns with allowed PII in {filename}. Skipping.")
 				continue
 
-			# Use the first common column as the key column for merging.
-			key_column = common_columns.pop()
-			print(f"Using {key_column} as the key column for {filename}.")
+			# Iterate through each common column as a potential key column.
+			for key_column in common_columns:
+				if key_column not in merged_dataframes:
+					merged_dataframes[key_column] = df
+				else:
+					try:
+						merged_dataframes[key_column] = pd.merge(merged_dataframes[key_column], df, on=key_column)
+					except KeyError:
+						print(f"'{key_column}' column not found in {filename}. Skipping this dataframe.")
 
-			# Store the dataframe in the dictionary for later merging.
-			dataframes[filename] = (df, key_column)
+	# Save merged dataframes and handle duplicates.
+	for key_column, merged_df in merged_dataframes.items():
+		# Combine 'firstname' and 'lastname' into 'fullname' if they exist.
+		if 'firstname' in merged_df.columns and 'lastname' in merged_df.columns:
+			merged_df['fullname'] = merged_df['firstname'] + " " + merged_df['lastname']
+			merged_df.drop(columns=['firstname', 'lastname'], inplace=True)
 
-	# Check if there are dataframes that can be merged.
-	if len(dataframes) < 2:
-		print("Not enough dataframes to merge.")
-		return
+		# Remove duplicates.
+		if merged_df.duplicated().any():
+			merged_df.drop_duplicates(inplace=True)
 
-	# Merge dataframes one by one.
-	merged_df = None
-	for filename, (df, key_column) in dataframes.items():
-		if merged_df is None:
-			merged_df = df
-		else:
-			try:
-				merged_df = pd.merge(merged_df, df, on=key_column)
-			except KeyError:
-				print(f"'{key_column}' column not found in {filename}. Skipping this dataframe.")
+		# Generate a random number and add it to the output filename.
+		random_suffix = ''.join(random.choice(string.ascii_letters) for _ in range(4))
+		output_filename = f"merged_{random_suffix}_{key_column}.csv"
+		output_dir = os.path.join(directory, output_filename)
+		merged_df.to_csv(output_dir, index=False)
 
-	# Save the merged dataframe to a CSV file.
-	output_dir = os.path.join(directory, "merged.csv")
-	merged_df.to_csv(output_dir, index=False)
-
-	if os.path.exists(output_dir):
-		print("Merged dataframes successfully and saved as 'merged.csv'.")
-		print(merged_df.head())
+		if os.path.exists(output_dir):
+			print(f"Merged dataframes using '{key_column}' as the key column and saved as '{output_filename}'.")
+			print(merged_df.head())
 
 
 if __name__ == "__main__":
