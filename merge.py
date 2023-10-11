@@ -2,6 +2,8 @@ import pandas as pd
 import os
 import sys
 import timeit
+import random
+import string
 
 def merge_csv_files_in_directory(directory):
     # Create an empty dictionary to track dataframes by their filenames.
@@ -81,12 +83,18 @@ def merge_csv_files_in_directory(directory):
     if 'username' in merged_df.columns and 'usernicename' in merged_df.columns:
         merged_df.drop(columns=['usernicename'], inplace=True)
 
+    # Remove duplicate columns with the same row contents.
+    merged_df = merged_df.T.drop_duplicates().T
+
+    # Generate a random number and add it to the output filename.
+    random_suffix = ''.join(random.choice(string.ascii_letters) for _ in range(4))
+    output_filename = f"merged_{random_suffix}_{key_column}.csv"
     # Save the merged dataframe to a CSV file.
-    output_dir = os.path.join(directory, "merged.csv")
+    output_dir = os.path.join(directory, output_filename)
     merged_df.to_csv(output_dir, index=False)
 
     if os.path.exists(output_dir):
-        print("Merged dataframes successfully and saved as 'merged.csv'.")
+        print(f"Merged dataframes successfully and saved as '{output_filename}'.")
         print(merged_df.head())
 
 if __name__ == "__main__":
