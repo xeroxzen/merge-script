@@ -47,6 +47,10 @@ def merge_csv_files_in_directory(directory):
 					else:
 						merged_dataframes[key_column] = pd.concat([merged_dataframes[key_column], df])
 
+	# Do validation before merging. For any duplicate columns coming from different dataframes, compare contents and
+	# merge only the column with the most complete rows
+
+
 	# Save merged dataframes and handle duplicates.
 	for key_column, merged_df in merged_dataframes.items():
 		# Combine 'firstname' and 'lastname' into 'fullname' if they exist.
