@@ -69,15 +69,13 @@ def merge_csv_files_in_directory(directory):
         merged_df.drop_duplicates(subset=key_column, inplace=True)
 
     # combine first and last name
-    if ('firstname' in merged_df.columns or 'first_name' in merged_df.columns) and ('lastname' in merged_df.columns
-                                                                                    or 'last_name' in merged_df.columns):
-        if 'first_name' in merged_df.columns:
-            merged_df.rename(columns={'first_name': 'firstname'}, inplace=True)
-        if 'last_name' in merged_df.columns:
-            merged_df.rename(columns={'last_name': 'lastname'}, inplace=True)
-
+    # Combine first and last name if both exist
+    if 'firstname' in merged_df.columns and 'lastname' in merged_df.columns:
         merged_df['fullname'] = merged_df['firstname'] + " " + merged_df['lastname']
         merged_df.drop(columns=['firstname', 'lastname'], inplace=True)
+    elif 'first_name' in merged_df.columns and 'last_name' in merged_df.columns:
+        merged_df['fullname'] = merged_df['first_name'] + " " + merged_df['last_name']
+        merged_df.drop(columns=['first_name', 'last_name'], inplace=True)
 
     # Drop usernicename if username exists.
     if 'username' in merged_df.columns and 'usernicename' in merged_df.columns:
