@@ -17,6 +17,9 @@ def merge_csv_files_in_directory(directory):
 						   'shipping_phone', 'shipping_phone_number', 'shipping_email', 'shipping_email_address',
 						   'address', 'billing_address', 'shipping_address', 'address1', 'address2', 'address3']
 
+	# Number of rows to consider for matching.
+	max_rows_to_compare = 1000
+
 	# Iterate through all files in the directory.
 	for filename in os.listdir(directory):
 		if filename.endswith(".csv"):
@@ -35,27 +38,21 @@ def merge_csv_files_in_directory(directory):
 				if key_column not in merged_dataframes:
 					merged_dataframes[key_column] = df
 				else:
-					try:
-						merged_dataframes[key_column] = pd.merge(merged_dataframes[key_column], df, on=key_column)
-					except KeyError:
-						print(f"'{key_column}' column not found in {filename}. Skipping this dataframe.")
+					# Check if the data types of the key columns match. If not, use pd.concat.
+					if df[key_column].dtype == merged_dataframes[key_column][key_column].dtype:
+						# Limit comparison to the first max_rows_to_compare rows.
+						merged_df = pd.merge(merged_dataframes[key_column][:max_rows_to_compare],
+											 df[:max_rows_to_compare], on=key_column)
+						merged_dataframes[key_column] = pd.concat([merged_dataframes[key_column], merged_df, df])
+					else:
+						merged_dataframes[key_column] = pd.concat([merged_dataframes[key_column], df])
 
 	# Save merged dataframes and handle duplicates.
 	for key_column, merged_df in merged_dataframes.items():
 		# Combine 'firstname' and 'lastname' into 'fullname' if they exist.
-		if ('firstname' in merged_df.columns or 'first_name' in merged_df.columns) and ('lastname' in merged_df.columns
-																						or 'last_name' in merged_df.columns):
-			if 'first_name' in merged_df.columns:
-				merged_df.rename(columns={'first_name': 'firstname'}, inplace=True)
-			if 'last_name' in merged_df.columns:
-				merged_df.rename(columns={'last_name': 'lastname'}, inplace=True)
-
+		if 'firstname' in merged_df.columns and 'lastname' in merged_df.columns:
 			merged_df['fullname'] = merged_df['firstname'] + " " + merged_df['lastname']
 			merged_df.drop(columns=['firstname', 'lastname'], inplace=True)
-
-		# Drop usernicename if username exists.
-		if 'username' in merged_df.columns and 'usernicename' in merged_df.columns:
-			merged_df.drop(columns=['usernicename'], inplace=True)
 
 		# Remove duplicates.
 		if merged_df.duplicated().any():
