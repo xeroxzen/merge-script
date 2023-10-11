@@ -46,7 +46,10 @@ def merge_csv_files_in_directory(directory):
 		if merged_df is None:
 			merged_df = df
 		else:
-			merged_df = pd.merge(merged_df, df, on=key_column)
+			try:
+				merged_df = pd.merge(merged_df, df, on=key_column)
+			except KeyError:
+				print(f"'{key_column}' column not found in {filename}. Skipping this dataframe.")
 
 	# Save the merged dataframe to a CSV file.
 	output_dir = os.path.join(directory, "merged.csv")
