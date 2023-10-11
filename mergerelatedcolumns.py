@@ -45,21 +45,45 @@ def merge_csv_files(file1, file2):
     if len(common_columns) > 1:
         key_column = None
         max_matching_values = 0
+        max_rows_to_check = 1000  # Define the maximum number of rows to check
 
         for column in common_columns:
-            matching_values = sum(
-                1 for i in range(len(df1)) for j in range(len(df2)) if df1[column][i] == df2[column][j]
-            )
+            matching_values = 0
+
+            # Limit the range to the first 1000 rows for both dataframes
+            for i in range(min(len(df1), max_rows_to_check)):
+                for j in range(min(len(df2), max_rows_to_check)):
+                    if df1[column][i] == df2[column][j]:
+                        matching_values += 1
 
             if matching_values > max_matching_values:
                 max_matching_values = matching_values
                 key_column = column
 
-        print("The key column is: " + key_column)
+        print("The key column is: " + str(key_column))
 
         # If a key column is not found, return None.
         if key_column is None:
             return None
+
+    # if len(common_columns) > 1:
+    #     key_column = None
+    #     max_matching_values = 0
+    #
+    #     for column in common_columns:
+    #         matching_values = sum(
+    #             1 for i in range(len(df1)) for j in range(len(df2)) if df1[column][i] == df2[column][j]
+    #         )
+    #
+    #         if matching_values > max_matching_values:
+    #             max_matching_values = matching_values
+    #             key_column = column
+    #
+    #     print("The key column is: " + key_column)
+    #
+    #     # If a key column is not found, return None.
+    #     if key_column is None:
+    #         return None
 
 
     # else:
