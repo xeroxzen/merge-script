@@ -9,7 +9,8 @@ def merge_csv_files_in_directory(directory):
     # Create an empty dictionary to track dataframes by their filenames.
     dataframes = {}
 
-    allowed_pii_columns = ['email', 'phone', 'ssn', 'user_id', 'customer_id', 'userid', 'customer_email', 'username',
+    allowed_pii_columns = ['email', 'phone', 'ssn', 'id','user_id', 'customer_id', 'userid', 'customer_email',
+                           'username',
                            'phonenumber', 'phone_number', 'billing_phone', 'billing_phone_number',
                            'billing_phone_number', 'billing_email', 'billing_email_address', 'billing_emailaddress',
                            'shipping_phone', 'shipping_phone_number', 'shipping_email', 'shipping_email_address',
