@@ -7,12 +7,15 @@ import string
 
 # Define the supported web systems and their common PII columns
 WEB_SYSTEMS = {
-    "wordpress": ["email", "username", "fullname"],
-    "joomla": ["email", "username", "fullname"],
-    "drupal": ["email", "username", "fullname"],
-    "magento": ["email", "username"],
-    "moodle": ["email", "username", "fullname"],
-    # Add more systems as needed
+    "wordpress": ["email", "username", "fullname", "userid", "firstname", "lastname", "usernicename",
+                  "hashed_password", "first_name", "last_name", "user_email", "user_login", "user_pass", "phone",
+                  "email"],
+    "joomla": ["email", "username", "usernicename", "name", "userid", "first_name", "last_name", "password",
+               "nickname", "comment_author_email", "comment_author", "comment_author_url", "comment_author_ip"],
+    # "drupal": ["email", "name", "phone"],
+    "magento": ["customer_email", "customer_name", "billing_name", "billing_email", "billing_phone", "shipping_name",
+                "shipping_address", "shipping_phone", "shipping_email"],
+    # "shopify": ["email", "phone", "name", "first_name", "last_name", "billing_address", "shipping_address"]
 }
 
 
