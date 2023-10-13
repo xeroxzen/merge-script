@@ -74,7 +74,7 @@ def merge_csv_files_in_directory(directory):
         merged_df['fullname'] = merged_df['first_name'] + " " + merged_df['last_name']
         merged_df.drop(columns=['first_name', 'last_name'], inplace=True)
 
-    if 'username' in merged_df.columns:
+    if 'username' and 'usernicename' in merged_df.columns:
         merged_df.drop(columns=['usernicename'], errors='ignore', inplace=True)
 
     # Remove duplicate columns with the same row contents.
