@@ -27,7 +27,7 @@ def get_system_key_columns(df):
 
 def check_matching_rows(df, key_column, min_matching_records=1000):
     matching_rows = df.duplicated(subset=[key_column])
-    return matching_rows.sum() >= min_matching_records
+    return matching_rows.sum() >= min_matching_records or len(df) < min_matching_records
 
 def merge_csv_files_in_directory(directory):
     # Create an empty dictionary to track dataframes by their filenames.
