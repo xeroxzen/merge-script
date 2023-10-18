@@ -25,9 +25,10 @@ def get_system_key_columns(df):
             return system, common_columns_in_df.pop()
     return None, None
 
-def check_matching_rows(df, key_column, min_matching_records=1000):
-    matching_rows = df.duplicated(subset=[key_column])
-    return matching_rows.sum() >= min_matching_records or len(df) < min_matching_records
+def check_matching_rows_across_files(dfs, key_column, min_matching_records=1000):
+    # Check for matching rows across all dataframes
+    matching_rows = dfs[0][0][key_column].isin(dfs[1][0][key_column])
+    return matching_rows.sum() >= min_matching_records
 
 def merge_csv_files_in_directory(directory):
     # Create an empty dictionary to track dataframes by their filenames.
@@ -47,11 +48,6 @@ def merge_csv_files_in_directory(directory):
 
             print(f"Recognized system: {system}, using {key_column} as the key column for {filename}.")
 
-            # Check for matching rows in the key column
-            if not check_matching_rows(df, key_column):
-                print(f"Not enough matching rows in {filename}. Skipping.")
-                continue
-
             # Store the dataframe in the dictionary for later merging.
             dataframes.setdefault(system, []).append((df, key_column))
 
@@ -61,31 +57,31 @@ def merge_csv_files_in_directory(directory):
             print(f"Not enough dataframes to merge for {system}.")
             continue
 
-        # Merge dataframes for the same recognized system.
-        merged_df = None
-        for df, key_column in dfs:
-            if merged_df is None:
-                merged_df = df
-            else:
-                merged_df = pd.merge(merged_df, df, on=key_column)
+        # Check for matching rows across files using the key_column
+        if check_matching_rows_across_files(dfs, key_column):
+            # Merge dataframes for the same recognized system using the key_column.
+            merged_df = None
+            for df, key_column in dfs:
+                if merged_df is None:
+                    merged_df = df
+                else:
+                    merged_df = pd.merge(merged_df, df, on=key_column)
 
-        if merged_df is not None and merged_df.duplicated(subset=key_column).any():
-            merged_df.drop_duplicates(subset=key_column, inplace=True)
+            if merged_df is not None:
+                # Additional merging and data cleaning logic can be added here for each system.
 
-        # Additional merging and data cleaning logic can be added here for each system.
+                # Remove duplicate columns with the same row contents.
+                merged_df = merged_df.T.drop_duplicates().T
 
-        # Save the merged dataframes for each system.
-        random_suffix = ''.join(random.choice(string.ascii_letters) for _ in range(4))
-        output_filename = f"merged_{random_suffix}_{key_column}_{system}.csv"
-        output_dir = os.path.join(directory, output_filename)
-        merged_df.to_csv(output_dir, index=False)
+                # Save the merged dataframes for each system.
+                random_suffix = ''.join(random.choice(string.ascii_letters) for _ in range(4))
+                output_filename = f"merged_{random_suffix}_{key_column}_{system}.csv"
+                output_dir = os.path.join(directory, output_filename)
+                merged_df.to_csv(output_dir, index=False)
 
-        if os.path.exists(output_dir):
-            print(f"Merged dataframes for the {system} system successfully and saved as '{output_filename}'.")
-            print(merged_df.head())
-
-        return merged_df
-
+                if os.path.exists(output_dir):
+                    print(f"Merged dataframes for the {system} system successfully and saved as '{output_filename}'.")
+                    print(merged_df.head())
 
 if __name__ == "__main__":
     start = timeit.default_timer()
