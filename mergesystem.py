@@ -69,6 +69,21 @@ def merge_csv_files_in_directory(directory):
 
             if merged_df is not None:
                 # Additional merging and data cleaning logic can be added here for each system.
+                # Combine first and lastname
+                if 'firstname' in merged_df.columns and 'lastname' in merged_df.columns:
+                    merged_df['fullname'] = merged_df['firstname'] + " " + merged_df['lastname']
+                    merged_df.drop(columns=['firstname', 'lastname'], inplace=True)
+                elif 'first_name' in merged_df.columns and 'last_name' in merged_df.columns:
+                    merged_df['fullname'] = merged_df['first_name'] + " " + merged_df['last_name']
+                    merged_df.drop(columns=['first_name', 'last_name'], inplace=True)
+
+                # If there's usernicename and username, drop usernicename.
+                if 'username' in merged_df.columns and 'usernicename' in merged_df.columns:
+                    merged_df.drop(columns=['usernicename'], inplace=True)
+
+                # If there are duplicate rows in the merged dataframe under the key_column, drop them.
+                if merged_df.duplicated(subset=key_column).any():
+                    merged_df.drop_duplicates(subset=key_column, inplace=True)
 
                 # Remove duplicate columns with the same row contents.
                 merged_df = merged_df.T.drop_duplicates().T
