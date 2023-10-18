@@ -12,12 +12,11 @@ WEB_SYSTEMS = {
                   "email"],
     "joomla": ["email", "username", "usernicename", "name", "userid", "first_name", "last_name", "password",
                "nickname", "comment_author_email", "comment_author", "comment_author_url", "comment_author_ip"],
-    # "drupal": ["email", "name", "phone"],
+    "drupal": ["email", "name", "phone"],
     "magento": ["customer_email", "customer_name", "billing_name", "billing_email", "billing_phone", "shipping_name",
                 "shipping_address", "shipping_phone", "shipping_email"],
-    # "shopify": ["email", "phone", "name", "first_name", "last_name", "billing_address", "shipping_address"]
+    "shopify": ["email", "phone", "name", "first_name", "last_name", "billing_address", "shipping_address"]
 }
-
 
 def get_system_key_columns(df):
     for system, common_columns in WEB_SYSTEMS.items():
@@ -26,6 +25,9 @@ def get_system_key_columns(df):
             return system, common_columns_in_df.pop()
     return None, None
 
+def check_matching_rows(df, key_column, min_matching_records=1000):
+    matching_rows = df.duplicated(subset=[key_column])
+    return matching_rows.sum() >= min_matching_records
 
 def merge_csv_files_in_directory(directory):
     # Create an empty dictionary to track dataframes by their filenames.
@@ -44,6 +46,11 @@ def merge_csv_files_in_directory(directory):
                 continue
 
             print(f"Recognized system: {system}, using {key_column} as the key column for {filename}.")
+
+            # Check for matching rows in the key column
+            if not check_matching_rows(df, key_column):
+                print(f"Not enough matching rows in {filename}. Skipping.")
+                continue
 
             # Store the dataframe in the dictionary for later merging.
             dataframes.setdefault(system, []).append((df, key_column))
@@ -76,6 +83,8 @@ def merge_csv_files_in_directory(directory):
         if os.path.exists(output_dir):
             print(f"Merged dataframes for the {system} system successfully and saved as '{output_filename}'.")
             print(merged_df.head())
+
+        return merged_df
 
 
 if __name__ == "__main__":
