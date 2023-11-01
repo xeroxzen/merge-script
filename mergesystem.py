@@ -36,7 +36,7 @@ def merge_csv_files_in_directory(directory):
 
     # Iterating through all CSVs in the directory.
     for filename in os.listdir(directory):
-        if filename.endswith(".csv") and "merged" not in filename:
+        if filename.endswith(".csv") and any(keyword in filename for keyword in ["users", "usermeta", "sessions"]):
             file_path = os.path.join(directory, filename)
             df = pd.read_csv(file_path, encoding='utf-8')
 
