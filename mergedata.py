@@ -4,6 +4,7 @@ import random
 import string
 import argparse
 import logging
+import timeit
 
 
 def random_string(length=4):
@@ -79,10 +80,12 @@ def merge_csv_files(directory):
     output_path = os.path.join(directory, output_filename)
 
     merged_data.to_csv(output_path, index=False)
-    logging.info(f"Merged data saved to {output_path}")
+    logging.info(f"Merged data saved to {output_filename}")
 
 
 if __name__ == "__main__":
+    start = timeit.default_timer()
+
     parser = argparse.ArgumentParser(
         description="Merge CSV files in a directory.")
     parser.add_argument(
@@ -92,3 +95,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     merge_csv_files(args.directory_path)
+
+    stop = timeit.default_timer()
+    print('Time taken: ', round((stop - start)/60, 1), "minutes")
