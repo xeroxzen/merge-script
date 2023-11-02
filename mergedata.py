@@ -9,7 +9,6 @@ def random_string(length=4):
     return ''.join(random.choices(string.ascii_letters, k=length))
 
 def merge_csv_files(directory):
-    # Check if the directory exists
     if not os.path.isdir(directory):
         logging.error(f"The specified directory '{directory}' does not exist.")
         return
