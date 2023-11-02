@@ -2,53 +2,51 @@ import os
 import pandas as pd
 import random
 import string
-import sys
+import argparse
+import logging
 
-def random_string(length=6):
+def random_string(length=4):
     return ''.join(random.choices(string.ascii_letters, k=length))
 
 def merge_csv_files(directory):
-    files = os.listdir(directory)
+    # Check if the directory exists
+    if not os.path.isdir(directory):
+        logging.error(f"The specified directory '{directory}' does not exist.")
+        return
 
-    # Initialize empty DataFrames to store merged data
-    users_data = pd.DataFrame()
-    usermeta_data = pd.DataFrame()
-
-    # Iterate through the files and merge them based on filenames
-    for filename in files:
-        if "users" in filename and filename.endswith(".csv"):
-            users_csv = pd.read_csv(os.path.join(directory, filename))
-            users_data = pd.concat([users_data, users_csv], ignore_index=True)
-        elif "usermeta" in filename and filename.endswith(".csv"):
-            usermeta_csv = pd.read_csv(os.path.join(directory, filename))
-            usermeta_data = pd.concat(
-                [usermeta_data, usermeta_csv], ignore_index=True)
-
-    # Define common columns to merge on
     users_merge_column = "id"
     usermeta_merge_column = "userid"
+    output_identifier = random_string()
 
-    # Merge dataframes if they are not empty
-    if not users_data.empty and not usermeta_data.empty:
-        merged_data = pd.merge(users_data, usermeta_data, left_on=users_merge_column,
-                               right_on=usermeta_merge_column, how="inner")
+    users_data, usermeta_data = [], []
 
-        # Generate a random string for the output filename
-        random_str = random_string()
-        output_filename = f"merged_{random_str}.csv"
-        output_dir = os.path.join(directory, output_filename)
+    for filename in os.listdir(directory):
+        if "users" in filename and filename.endswith(".csv"):
+            users_csv = pd.read_csv(os.path.join(directory, filename))
+            users_data.append(users_csv)
+        elif "usermeta" in filename and filename.endswith(".csv"):
+            usermeta_csv = pd.read_csv(os.path.join(directory, filename))
+            usermeta_data.append(usermeta_csv)
 
-        # Write the merged data to a new CSV file
-        merged_data.to_csv(output_dir, index=False)
+    if not users_data or not usermeta_data:
+        logging.error("No valid data found in the specified files.")
+        return
 
-        print(f"Merged data saved to {output_filename}")
-    else:
-        print("No data to merge in the specified files.")
+    merged_data = pd.concat(users_data, ignore_index=True)
+    merged_data = pd.merge(merged_data, pd.concat(usermeta_data, ignore_index=True),
+                           left_on=users_merge_column, right_on=usermeta_merge_column, how="inner")
 
+    output_filename = f"merged_{output_identifier}.csv"
+    output_path = os.path.join(directory, output_filename)
+
+    merged_data.to_csv(output_path, index=False)
+    logging.info(f"Merged data saved to {output_path}")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python merge_csv.py <directory_path>")
-    else:
-        directory_path = sys.argv[1]
-        merge_csv_files(directory_path)
+    parser = argparse.ArgumentParser(description="Merge CSV files in a directory.")
+    parser.add_argument("directory_path", help="Path to the directory containing CSV files.")
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO)
+
+    merge_csv_files(args.directory_path)
