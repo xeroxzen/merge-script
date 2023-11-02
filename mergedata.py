@@ -5,8 +5,10 @@ import string
 import argparse
 import logging
 
+
 def random_string(length=4):
     return ''.join(random.choices(string.ascii_letters, k=length))
+
 
 def merge_csv_files(directory):
     if not os.path.isdir(directory):
@@ -14,58 +16,77 @@ def merge_csv_files(directory):
         return
 
     output_identifier = random_string()
-    merged_data = None
+
+    users_data, usermeta_data = [], []
 
     for filename in os.listdir(directory):
         if "users" in filename and filename.endswith(".csv"):
-            user_data = pd.read_csv(os.path.join(directory, filename))
-            if merged_data is None:
-                merged_data = user_data
-            else:
-                common_columns = list(set(merged_data.columns) & set(user_data.columns))
-                if not common_columns:
-                    logging.warning(f"No common columns found between '{filename}' and the merged data. Skipping.")
-                    continue
+            users_csv = pd.read_csv(os.path.join(directory, filename))
+            users_data.append(users_csv)
+        elif "usermeta" in filename and filename.endswith(".csv"):
+            usermeta_csv = pd.read_csv(os.path.join(directory, filename))
+            usermeta_data.append(usermeta_csv)
 
-                common_column = common_columns[0]  # Choose the first common column
-                common_rows = min(1000, min(len(merged_data), len(user_data)))
+    if not users_data or not usermeta_data:
+        logging.error("No valid data found in the specified files.")
+        return
 
-                # Check if the chosen common column matches for at least 1000 rows
-                match_count = (merged_data.head(common_rows)[common_column] == user_data.head(common_rows)[common_column]).sum()
-                if match_count < common_rows:
-                    logging.warning(f"Chosen common column '{common_column}' does not match for at least 1000 rows in '{filename}'. Skipping.")
-                    continue
+    # Check if the chosen columns exist in the DataFrames
+    if "id" not in users_data[0] or "userid" not in usermeta_data[0]:
+        logging.error(
+            "The specified 'id' or 'userid' columns do not exist in the data.")
+        return
 
-                # Merge dataframes
-                merged_data = pd.merge(merged_data, user_data, on=common_column, how="inner")
+    # Custom merge with matching rows check
+    users_data = pd.concat(users_data, ignore_index=True)
+    usermeta_data = pd.concat(usermeta_data, ignore_index=True)
 
-    if merged_data is not None:
-        # Delete duplicate columns
-        merged_data = merged_data.loc[:, ~merged_data.columns.duplicated()]
+    min_matching_rows = 1000
 
-        # Merge "firstname" and "lastname" columns if they exist
-        if "firstname" in merged_data and "lastname" in merged_data:
-            merged_data["fullname"] = merged_data["firstname"] + " " + merged_data["lastname"]
-            merged_data = merged_data.drop(columns=["firstname", "lastname"])
-        elif "first_name" in merged_data and "last_name" in merged_data:
-            merged_data["fullname"] = merged_data["first_name"] + " " + merged_data["last_name"]
-            merged_data = merged_data.drop(columns=["first_name", "last_name"])
-
-        # If both "usernicename" and "username" exist, delete "usernicename" column
-        if "usernicename" in merged_data and "username" in merged_data:
-            merged_data = merged_data.drop(columns=["usernicename"])
-
-        output_filename = f"merged_{output_identifier}.csv"
-        output_path = os.path.join(directory, output_filename)
-
-        merged_data.to_csv(output_path, index=False)
-        logging.info(f"Merged data saved to {output_path}")
+    # Check matches for at least 1000 rows for big files
+    if len(users_data) >= min_matching_rows and len(usermeta_data) >= min_matching_rows:
+        common_ids = set(users_data["id"]).intersection(
+            usermeta_data["userid"])
     else:
-        logging.warning("No valid data found in the specified files.")
+        common_ids = set(users_data["id"]) & set(usermeta_data["userid"])
+
+    if not common_ids:
+        logging.warning("No matching rows found in 'id' and 'userid' columns.")
+        return
+
+    # Perform the merge with the filtered common IDs
+    merged_data = users_data.merge(
+        usermeta_data, how="inner", left_on="id", right_on="userid")
+
+    # Delete duplicate columns
+    merged_data.drop("userid", axis=1, inplace=True)
+
+    # Merge 'firstname' and 'lastname' columns
+    if "firstname" in merged_data and "lastname" in merged_data:
+        merged_data['fullname'] = merged_data['firstname'] + \
+            ' ' + merged_data['lastname']
+        merged_data.drop(["firstname", "lastname"], axis=1, inplace=True)
+    elif "first_name" in merged_data and "last_name" in merged_data:
+        merged_data['fullname'] = merged_data['first_name'] + \
+            ' ' + merged_data['last_name']
+        merged_data.drop(["first_name", "last_name"], axis=1, inplace=True)
+
+    # If "usernicename" and "username" both exist, delete "usernicename" column
+    if "usernicename" in merged_data and "username" in merged_data:
+        merged_data.drop("usernicename", axis=1, inplace=True)
+
+    output_filename = f"merged_{output_identifier}.csv"
+    output_path = os.path.join(directory, output_filename)
+
+    merged_data.to_csv(output_path, index=False)
+    logging.info(f"Merged data saved to {output_path}")
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Merge CSV files in a directory.")
-    parser.add_argument("directory_path", help="Path to the directory containing CSV files.")
+    parser = argparse.ArgumentParser(
+        description="Merge CSV files in a directory.")
+    parser.add_argument(
+        "directory_path", help="Path to the directory containing CSV files.")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
