@@ -95,11 +95,10 @@ def merge_csv_files(directory):
             ' ' + merged_data['last_name']
         merged_data.drop(["first_name", "last_name"], axis=1, inplace=True)
 
-    # If "usernicename" and "username" both exist, delete "usernicename" column
+    # Cleaning up
     if "usernicename" in merged_data and "username" in merged_data:
         merged_data.drop("usernicename", axis=1, inplace=True)
 
-    # Delete duplicate rows
     merged_data.drop_duplicates(inplace=True)
 
     output_filename = f"merged_{output_identifier}.csv"
