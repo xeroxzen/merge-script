@@ -76,6 +76,9 @@ def merge_csv_files(directory):
     if "usernicename" in merged_data and "username" in merged_data:
         merged_data.drop("usernicename", axis=1, inplace=True)
 
+    # Delete duplicate rows
+    merged_data.drop_duplicates(inplace=True)
+
     output_filename = f"merged_{output_identifier}.csv"
     output_path = os.path.join(directory, output_filename)
 
