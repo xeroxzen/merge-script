@@ -66,7 +66,7 @@ def usermeta_cleaner(filename):
         elif "field_id" in df.columns:
             data = df.groupby(['userid', 'field_id'])[
                 'field_value'].first().unstack().fillna('')
-        print(data.head())
+        # print(data.head())
     elif 'user_id' in df.columns:
         df = df[pd.to_numeric(df['user_id'], errors='coerce').notnull()]
         df['user_id'] = df['user_id'].fillna(-1).astype(int)
@@ -77,7 +77,7 @@ def usermeta_cleaner(filename):
         elif "field_id" in df.columns:
             data = df.groupby(['user_id', 'field_id'])[
                 'field_value'].first().unstack().fillna('')
-        print(data.head())
+        # print(data.head())
 
     else:
         print("No userid or user_id column found")
