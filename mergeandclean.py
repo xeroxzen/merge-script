@@ -11,6 +11,16 @@ from usermetacleaner import usermeta_cleaner
 def random_string(length=4):
     return ''.join(random.choices(string.ascii_letters, k=length))
 
+def find_cleaned_usermeta_file(directory, usermeta_filename):
+    cleaned_usermeta_filename = usermeta_filename.replace(".csv", "_usermeta_cleaned.csv")
+    
+    # Check if the cleaned usermeta file is in the same directory
+    cleaned_usermeta_path = os.path.join(directory, cleaned_usermeta_filename)
+    if os.path.isfile(cleaned_usermeta_path):
+        return cleaned_usermeta_path
+    else:
+        return None
+
 
 def merge_csv_files(directory):
     if not os.path.isdir(directory):
@@ -33,8 +43,11 @@ def merge_csv_files(directory):
                 # Call the cleaning script
                 logging.info("Cleaning the usermeta file...")
                 usermeta_cleaner(os.path.join(directory, filename))
-                # Now, load the cleaned usermeta data
-                usermeta_csv = pd.read_csv(os.path.join(directory, filename))
+                # Look for the cleaned usermeta file
+                cleaned_usermeta_path = find_cleaned_usermeta_file(directory, filename)
+                if cleaned_usermeta_path:
+                    # Now, load the cleaned usermeta data
+                    usermeta_csv = pd.read_csv(cleaned_usermeta_path)
 
             usermeta_data.append(usermeta_csv)
 
