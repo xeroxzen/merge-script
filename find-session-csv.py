@@ -1,23 +1,19 @@
-"""_summary_
-Problem:
-
-    We need a script that can recursively search through a directory and its subdirectories, identifying CSV files whose filenames contain the word "session." This script will serve as the first step in the process of comparing session and user data.
-
-Tasks:
-
-    Create a Python script that recursively searches for CSV files with "session" in the filename.
-    List the discovered CSV files.
-    Create documentation on how to use the script.
+"""
+@author: Andile Mbele
 """
 
 import os
 import sys
 
 
-def find_session_csv_files(directory_path):
+def find_session_csv_files(directory_path, skip_directories=None):
     session_csv_files = []
 
-    for root, _, files in os.walk(directory_path):
+    for root, dirs, files in os.walk(directory_path):
+        # Check if any of the skip directories are in the current path
+        if any(skip_dir.lower() in root.lower() for skip_dir in skip_directories):
+            continue
+
         for filename in files:
             if filename.lower().endswith('.csv') and 'session' in filename.lower():
                 session_csv_files.append(os.path.join(root, filename))
@@ -32,8 +28,11 @@ def main():
         print(f"Directory '{directory_path}' does not exist.")
         return
 
-    session_csv_files = find_session_csv_files(directory_path)
-    
+    skip_directories = ["badones", "bad ones",
+                        "complete", "sql_statements", "unable_to_parse"]
+    session_csv_files = find_session_csv_files(
+        directory_path, skip_directories)
+
     # Count total number of files found
     count = 0
 
