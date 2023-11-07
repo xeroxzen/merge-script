@@ -59,29 +59,36 @@ def merge_csv_files(directory):
 
     # Check if sessions_data exists
     if sessions_data:
-        sessions_data = sessions_data[0]  # Extract the first session data DataFrame
-        common_columns = set(sessions_data.columns).intersection(users_data[0].columns)
+        # Extract the first session data DataFrame
+        sessions_data = sessions_data[0]
+        key_columns = set(sessions_data.columns).intersection(
+            users_data[0].columns)
         # Check if "userid" or "email" columns exist in users_data and sessions_data
-        if "userid" in common_columns and "userid" in sessions_data[0]:
-            key_columns = set(users_data["userid"]) & set(
-                sessions_data[0]["userid"])
-        elif "email" in users_data and "email" in sessions_data[0]:
-            key_columns = set(users_data["email"]) & set(
-                sessions_data[0]["email"])
+        if "userid" in users_data[0].columns and "userid" in sessions_data.columns:
+            key_columns = set(users_data[0]["userid"]) & set(
+                sessions_data["userid"])
+        elif "email" in users_data[0].columns and "email" in sessions_data.columns:
+            key_columns = set(users_data[0]["email"]) & set(
+                sessions_data["email"])
         else:
             logging.warning(
                 "No common columns ('userid' or 'email') found for sessions merge")
             key_columns = set()
 
         if key_columns:
-            # Perform the merge with the filtered key-column
-            sessions_data[0] = sessions_data[0][sessions_data[0]
-                                                ["userid"].isin(key_columns)]
-            merged_data = users_data.merge(
-                sessions_data[0], how="inner", left="userid", right="userid")
+            # Filter sessions_data based on common key_column
+            sessions_data = sessions_data[sessions_data[key_columns].isin(
+                users_data[0][key_columns])]
+            # Perform the merge with users_data
+            merged_data = users_data[0].merge(
+                sessions_data, how="inner", left_on=key_columns, right_on=key_columns)
         else:
             # If no key column, just merge the users_data with an empty sessions_data
-            merged_data = users_data
+            merged_data = users_data[0]
+    else:
+        # If no sessions data, just use users_data
+        merged_data = users_data[0]
+
 
     if not users_data or not usermeta_data:
         logging.error("No valid data found in the specified files.")
@@ -116,7 +123,7 @@ def merge_csv_files(directory):
 
     # Delete duplicate columns
     merged_data.drop("userid", axis=1, inplace=True)
-
+    
     # Merge 'firstname' and 'lastname' columns
     if "firstname" in merged_data and "lastname" in merged_data:
         merged_data['fullname'] = merged_data['firstname'] + \
