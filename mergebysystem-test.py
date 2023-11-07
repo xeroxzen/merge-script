@@ -54,7 +54,8 @@ def merge_csv_files(directory):
 
             usermeta_data.append(usermeta_csv)
         elif "session" in filename and filename.endswith(".csv"):
-            sessions_csv = pd.read_csv(os.path.join(directory, filename))
+            sessions_csv = pd.read_csv(os.path.join(
+                directory, filename), dtype="object")
             sessions_data.append(sessions_csv)
 
     # Check if sessions_data exists
@@ -89,7 +90,6 @@ def merge_csv_files(directory):
         # If no sessions data, just use users_data
         merged_data = users_data[0]
 
-
     if not users_data or not usermeta_data:
         logging.error("No valid data found in the specified files.")
         return
@@ -103,6 +103,7 @@ def merge_csv_files(directory):
     # Custom merge with matching rows check
     users_data = pd.concat(users_data, ignore_index=True)
     usermeta_data = pd.concat(usermeta_data, ignore_index=True)
+    sessions_data = pd.concat(sessions_data, ignore_index=True)
 
     min_matching_rows = 1000
 
@@ -123,7 +124,7 @@ def merge_csv_files(directory):
 
     # Delete duplicate columns
     merged_data.drop("userid", axis=1, inplace=True)
-    
+
     # Merge 'firstname' and 'lastname' columns
     if "firstname" in merged_data and "lastname" in merged_data:
         merged_data['fullname'] = merged_data['firstname'] + \
