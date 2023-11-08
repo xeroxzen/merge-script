@@ -101,7 +101,7 @@ def merge_csv_files(directory):
 
     merged_data.drop_duplicates(inplace=True)
 
-    output_filename = f"merged_{output_identifier}.csv"
+    output_filename = f"users_and_usermeta_{output_identifier}_merged.csv"
     output_path = os.path.join(directory, output_filename)
 
     merged_data.to_csv(output_path, index=False)
@@ -122,4 +122,4 @@ if __name__ == "__main__":
     merge_csv_files(args.directory_path)
 
     stop = timeit.default_timer()
-    print('Time taken: ', round((stop - start)/60, 1), "minutes")
+    print('Time taken: ', stop - start)
