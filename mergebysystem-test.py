@@ -101,9 +101,26 @@ def merge_csv_files(directory):
         return
 
     # Custom merge with matching rows check
-    users_data = pd.concat(users_data, ignore_index=True)
-    usermeta_data = pd.concat(usermeta_data, ignore_index=True)
-    sessions_data = pd.concat(sessions_data, ignore_index=True)
+    try:
+        users_data = pd.concat(users_data, ignore_index=True)
+    except ValueError as e:
+        if str(e) == "No objects to concatenate":
+            logging.warning("No users data found.")
+            users_data = pd.DataFrame()
+
+    try:
+        usermeta_data = pd.concat(usermeta_data, ignore_index=True)
+    except ValueError as e:
+        if str(e) == "No objects to concatenate":
+            logging.warning("No usermeta data found.")
+            usermeta_data = pd.DataFrame()
+
+    try:
+        sessions_data = pd.concat(sessions_data, ignore_index=True)
+    except ValueError as e:
+        if str(e) == "No objects to concatenate":
+            logging.warning("No sessions data found.")
+            sessions_data = pd.DataFrame()
 
     min_matching_rows = 1000
 
@@ -141,7 +158,7 @@ def merge_csv_files(directory):
 
     merged_data.drop_duplicates(inplace=True)
 
-    output_filename = f"merged_{output_identifier}.csv"
+    output_filename = f"users_and_usermeta_{output_identifier}_merged.csv"
     output_path = os.path.join(directory, output_filename)
 
     merged_data.to_csv(output_path, index=False)
