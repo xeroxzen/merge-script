@@ -64,6 +64,7 @@ def merge_csv_files(directory):
         sessions_data = sessions_data[0]
         key_columns = set(sessions_data.columns).intersection(
             users_data[0].columns)
+        print(key_columns)
         # Check if "userid" or "email" columns exist in users_data and sessions_data
         if "userid" in users_data[0].columns and "userid" in sessions_data.columns:
             key_columns = set(users_data[0]["userid"]) & set(
