@@ -35,7 +35,7 @@ def merge_csv_files(directory):
 
     for filename in os.listdir(directory):
         if "users" in filename and filename.endswith(".csv"):
-            users_csv = pd.read_csv(os.path.join(directory, filename))
+            users_csv = pd.read_csv(os.path.join(directory, filename), dtype=str, low_memory=False)
             users_data.append(users_csv)
         elif "usermeta" in filename and filename.endswith(".csv"):
             usermeta_csv = pd.read_csv(os.path.join(directory, filename))
@@ -55,38 +55,34 @@ def merge_csv_files(directory):
             usermeta_data.append(usermeta_csv)
         elif "session" in filename and filename.endswith(".csv"):
             sessions_csv = pd.read_csv(os.path.join(
-                directory, filename), dtype="object")
+                directory, filename))
             sessions_data.append(sessions_csv)
 
-    # Check if sessions_data exists
     if sessions_data:
         # Extract the first session data DataFrame
         sessions_data = sessions_data[0]
-        key_columns = set(sessions_data.columns).intersection(
-            users_data[0].columns)
+        key_columns = set(sessions_data.columns).intersection(users_data[0].columns)
         print(key_columns)
+
         # Check if "userid" or "email" columns exist in users_data and sessions_data
         if "userid" in users_data[0].columns and "userid" in sessions_data.columns:
-            key_columns = set(users_data[0]["userid"]) & set(
-                sessions_data["userid"])
+            key_values = set(users_data[0]["userid"]) & set(sessions_data["userid"])
         elif "email" in users_data[0].columns and "email" in sessions_data.columns:
-            key_columns = set(users_data[0]["email"]) & set(
-                sessions_data["email"])
+            key_values = set(users_data[0]["email"]) & set(sessions_data["email"])
         else:
-            logging.warning(
-                "No common columns ('userid' or 'email') found for sessions merge")
-            key_columns = set()
+            logging.warning("No common columns ('userid' or 'email') found for sessions merge")
+            key_values = set()
 
-        if key_columns:
-            # Filter sessions_data based on common key_column
-            sessions_data = sessions_data[sessions_data[key_columns].isin(
-                users_data[0][key_columns])]
-            # Perform the merge with users_data
+        if key_values:
+            # Convert key_columns to a list and use list(key_columns) in the indexer
             merged_data = users_data[0].merge(
-                sessions_data, how="inner", left_on=key_columns, right_on=key_columns)
+                sessions_data[sessions_data[list(key_columns)].isin(key_values)],
+                how="inner", left_on=list(key_columns), right_on=list(key_columns)
+            )
         else:
             # If no key column, just merge the users_data with an empty sessions_data
             merged_data = users_data[0]
+
     else:
         # If no sessions data, just use users_data
         merged_data = users_data[0]
