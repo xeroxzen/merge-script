@@ -69,8 +69,10 @@ def merge_csv_files(directory):
             key_values = set(users_data[0]["userid"]) & set(sessions_data["userid"])
         elif "email" in users_data[0].columns and "email" in sessions_data.columns:
             key_values = set(users_data[0]["email"]) & set(sessions_data["email"])
+        elif "ipv4_addresses" in users_data[0].columns and "ipv4_addresses" in sessions_data.columns:
+            key_values = set(users_data[0]["ipv4_addresses"]) & set(sessions_data["ipv4_addresses"])
         else:
-            logging.warning("No common columns ('userid' or 'email') found for sessions merge")
+            logging.warning("No common columns ('userid' or 'email' or 'ipv4_addresses') found for sessions merge")
             key_values = set()
 
         if key_values:
