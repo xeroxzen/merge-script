@@ -34,10 +34,10 @@ def merge_csv_files(directory):
     users_data, usermeta_data, sessions_data = [], [], []
 
     for filename in os.listdir(directory):
-        if "users" in filename and filename.endswith(".csv"):
+        if "users" in filename and "merged" not in filename and filename.endswith(".csv"):
             users_csv = pd.read_csv(os.path.join(directory, filename), dtype=str, low_memory=False)
             users_data.append(users_csv)
-        elif "usermeta" in filename and filename.endswith(".csv"):
+        elif "usermeta" in filename and "merged" not in filename and filename.endswith(".csv"):
             usermeta_csv = pd.read_csv(os.path.join(directory, filename))
 
             # Check if the usermeta file is not cleaned
@@ -53,7 +53,7 @@ def merge_csv_files(directory):
                     usermeta_csv = pd.read_csv(cleaned_usermeta_path)
 
             usermeta_data.append(usermeta_csv)
-        elif "session" in filename and filename.endswith(".csv"):
+        elif "session" in filename and "merged" not in filename and filename.endswith(".csv"):
             sessions_csv = pd.read_csv(os.path.join(
                 directory, filename))
             sessions_data.append(sessions_csv)
@@ -62,7 +62,6 @@ def merge_csv_files(directory):
         # Extract the first session data DataFrame
         sessions_data = sessions_data[0]
         key_columns = set(sessions_data.columns).intersection(users_data[0].columns)
-        print(key_columns)
 
         # Check if "userid" or "email" columns exist in users_data and sessions_data
         if "userid" in users_data[0].columns and "userid" in sessions_data.columns:
