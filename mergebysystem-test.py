@@ -13,8 +13,7 @@ def random_string(length=4):
 
 
 def find_cleaned_usermeta_file(directory, usermeta_filename):
-    cleaned_usermeta_filename = usermeta_filename.replace(
-        ".csv", "_usermeta_cleaned.csv")
+    cleaned_usermeta_filename = usermeta_filename.replace(".csv", "_usermeta_cleaned.csv")
 
     # Check if the cleaned usermeta file is in the same directory
     cleaned_usermeta_path = os.path.join(directory, cleaned_usermeta_filename)
@@ -31,13 +30,13 @@ def merge_csv_files(directory):
 
     output_identifier = random_string()
 
-    users_data, usermeta_data, sessions_data = [], [], []
+    users_data, usermeta_data = [], []
 
     for filename in os.listdir(directory):
-        if "users" in filename and "merged" not in filename and filename.endswith(".csv"):
-            users_csv = pd.read_csv(os.path.join(directory, filename), dtype=str, low_memory=False)
+        if "users" in filename and filename.endswith(".csv"):
+            users_csv = pd.read_csv(os.path.join(directory, filename))
             users_data.append(users_csv)
-        elif "usermeta" in filename and "merged" not in filename and filename.endswith(".csv"):
+        elif "usermeta" in filename and filename.endswith(".csv"):
             usermeta_csv = pd.read_csv(os.path.join(directory, filename))
 
             # Check if the usermeta file is not cleaned
@@ -46,54 +45,19 @@ def merge_csv_files(directory):
                 logging.info("Cleaning the usermeta file...")
                 usermeta_cleaner(os.path.join(directory, filename))
                 # Look for the cleaned usermeta file
-                cleaned_usermeta_path = find_cleaned_usermeta_file(
-                    directory, filename)
+                cleaned_usermeta_path = find_cleaned_usermeta_file(directory, filename)
                 if cleaned_usermeta_path:
                     # Now, load the cleaned usermeta data
                     usermeta_csv = pd.read_csv(cleaned_usermeta_path)
 
             usermeta_data.append(usermeta_csv)
-        elif "session" in filename and "merged" not in filename and filename.endswith(".csv"):
-            sessions_csv = pd.read_csv(os.path.join(
-                directory, filename))
-            sessions_data.append(sessions_csv)
-
-    if sessions_data:
-        # Extract the first session data DataFrame
-        sessions_data = sessions_data[0]
-        key_columns = set(sessions_data.columns).intersection(users_data[0].columns)
-
-        # Check if "userid" or "email" columns exist in users_data and sessions_data
-        if "userid" in users_data[0].columns and "userid" in sessions_data.columns:
-            key_values = set(users_data[0]["userid"]) & set(sessions_data["userid"])
-        elif "email" in users_data[0].columns and "email" in sessions_data.columns:
-            key_values = set(users_data[0]["email"]) & set(sessions_data["email"])
-        elif "ipv4_addresses" in users_data[0].columns and "ipv4_addresses" in sessions_data.columns:
-            key_values = set(users_data[0]["ipv4_addresses"]) & set(sessions_data["ipv4_addresses"])
-        else:
-            logging.warning("No common columns ('userid' or 'email' or 'ipv4_addresses') found for sessions merge")
-            key_values = set()
-
-        if key_values:
-            # Convert key_columns to a list and use list(key_columns) in the indexer
-            merged_data = users_data[0].merge(
-                sessions_data[sessions_data[list(key_columns)].isin(key_values)],
-                how="inner", left_on=list(key_columns), right_on=list(key_columns)
-            )
-        else:
-            # If no key column, just merge the users_data with an empty sessions_data
-            merged_data = users_data[0]
-
-    else:
-        # If no sessions data, just use users_data
-        merged_data = users_data[0]
 
     if not users_data or not usermeta_data:
         logging.error("No valid data found in the specified files.")
         return
 
     # Check if the chosen columns exist in the DataFrames
-    if ("id" not in users_data[0]) or "userid" not in usermeta_data[0]:
+    if "id" not in users_data[0] or "userid" not in usermeta_data[0]:
         logging.error(
             "The specified 'id' or 'userid' columns do not exist in the data.")
         return
@@ -112,13 +76,6 @@ def merge_csv_files(directory):
         if str(e) == "No objects to concatenate":
             logging.warning("No usermeta data found.")
             usermeta_data = pd.DataFrame()
-
-    try:
-        sessions_data = pd.concat(sessions_data, ignore_index=True)
-    except ValueError as e:
-        if str(e) == "No objects to concatenate":
-            logging.warning("No sessions data found.")
-            sessions_data = pd.DataFrame()
 
     min_matching_rows = 1000
 
@@ -143,11 +100,11 @@ def merge_csv_files(directory):
     # Merge 'firstname' and 'lastname' columns
     if "firstname" in merged_data and "lastname" in merged_data:
         merged_data['fullname'] = merged_data['firstname'] + \
-            ' ' + merged_data['lastname']
+                                  ' ' + merged_data['lastname']
         merged_data.drop(["firstname", "lastname"], axis=1, inplace=True)
     elif "first_name" in merged_data and "last_name" in merged_data:
         merged_data['fullname'] = merged_data['first_name'] + \
-            ' ' + merged_data['last_name']
+                                  ' ' + merged_data['last_name']
         merged_data.drop(["first_name", "last_name"], axis=1, inplace=True)
 
     # Cleaning up
@@ -162,19 +119,60 @@ def merge_csv_files(directory):
     merged_data.to_csv(output_path, index=False)
     logging.info(f"Merged data saved to {output_filename}")
 
+    return output_path
+
+def merge_with_sessions(directory):
+    merged_users_usermeta_file = merge_csv_files(directory)
+
+    sessions_file = None
+    for filename in os.listdir(directory):
+        if "sessions" in filename and filename.endswith(".csv"):
+            sessions_file = os.path.join(directory, filename)
+            break
+
+    if sessions_file is None:
+        logging.warning("No sessions file found in the specified directory.")
+        return
+
+    merged_data = pd.read_csv(merged_users_usermeta_file)
+    sessions_data = pd.read_csv(sessions_file)
+
+    # Check if potential merge columns exist
+    potential_merge_columns = ['userid', 'email']
+
+    for merge_column in potential_merge_columns:
+        if merge_column in merged_data and merge_column in sessions_data:
+            common_ids = set(merged_data[merge_column]).intersection(sessions_data[merge_column])
+
+            if len(common_ids) >= 1000:
+                # Perform the merge with the filtered common IDs
+                merged_data = merged_data.merge(sessions_data, how="inner", on=merge_column)
+                break  # Break out of the loop after the first successful merge
+
+    if len(merged_data) == 0:
+        logging.warning("No matching rows found for merging with sessions data.")
+        return
+
+    # Save the merged data with sessions
+    output_filename = f"merged_with_sessions_{random_string()}.csv"
+    output_path = os.path.join(directory, output_filename)
+
+    merged_data.to_csv(output_path, index=False)
+    logging.info(f"Merged data with sessions saved to {output_filename}")
 
 if __name__ == "__main__":
     start = timeit.default_timer()
 
     parser = argparse.ArgumentParser(
-        description="Merge CSV files in a directory.")
+        description="Merge CSV files in a directory and then merge with sessions data.")
     parser.add_argument(
         "directory_path", help="Path to the directory containing CSV files.")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
 
-    merge_csv_files(args.directory_path)
+    # Run the merged users and usermeta files
+    merge_with_sessions(args.directory_path)
 
     stop = timeit.default_timer()
     print('Time taken: ', stop - start)
