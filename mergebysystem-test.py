@@ -47,7 +47,6 @@ def merge_csv_files(directory):
                 # Look for the cleaned usermeta file
                 cleaned_usermeta_path = find_cleaned_usermeta_file(directory, filename)
                 if cleaned_usermeta_path:
-                    # Now, load the cleaned usermeta data
                     usermeta_csv = pd.read_csv(cleaned_usermeta_path)
 
             usermeta_data.append(usermeta_csv)
@@ -147,7 +146,6 @@ def merge_with_sessions(directory):
             common_ids = set(merged_data[merge_column]).intersection(sessions_data[merge_column])
 
             if len(common_ids) >= 1000:
-                # Merge with the filtered common IDs
                 merged_data = merged_data.merge(sessions_data, how="inner", on=merge_column)
                 break
 
