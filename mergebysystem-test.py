@@ -134,7 +134,7 @@ def merge_with_sessions(directory):
         logging.warning("No sessions file found in the specified directory.")
         return
 
-    merged_data = pd.read_csv(merged_users_usermeta_file)
+    merged_data = pd.read_csv(merged_users_usermeta_file) if merged_users_usermeta_file else pd.DataFrame()
     sessions_data = pd.read_csv(sessions_file)
 
     # Check if potential merge columns exist
@@ -159,6 +159,7 @@ def merge_with_sessions(directory):
 
     merged_data.to_csv(output_path, index=False)
     logging.info(f"Merged data with sessions saved to {output_filename}")
+
 
 if __name__ == "__main__":
     start = timeit.default_timer()
