@@ -81,18 +81,20 @@ def merge_csv_files(directory):
 
     # Check matches for at least 1000 rows for big files
     if len(users_data) >= min_matching_rows and len(usermeta_data) >= min_matching_rows:
-        common_ids = set(users_data["id"]).intersection(
-            usermeta_data["userid"])
-    else:
-        common_ids = set(users_data["id"]) & set(usermeta_data["userid"])
-
-    if not common_ids:
-        logging.warning("No matching rows found in 'id' and 'userid' columns.")
-        return
+        # Check if both "id" and "userid" are present in users_data columns
+        if "id" in users_data.columns and "userid" in users_data.columns:
+            common_ids = set(users_data["id"]).intersection(usermeta_data["userid"])
+        elif "id" in users_data.columns:
+            common_ids = set(users_data["id"]) & set(usermeta_data["userid"])
+        elif "userid" in users_data.columns:
+            common_ids = set(users_data["userid"]) & set(usermeta_data["userid"])
+        else:
+            logging.warning("No common columns ('id' or 'userid') found in users_data.")
+            return
 
     # Perform the merge with the filtered common IDs
-    merged_data = users_data.merge(
-        usermeta_data, how="inner", left_on="id", right_on="userid")
+    merged_data = users_data.merge(usermeta_data, how="inner", left_on="id" if "id" in users_data.columns else "userid", right_on="userid")
+
 
     # Delete duplicate columns
     merged_data.drop("userid", axis=1, inplace=True)
@@ -126,7 +128,7 @@ def merge_with_sessions(directory):
 
     sessions_file = None
     for filename in os.listdir(directory):
-        if "sessions" in filename and filename.endswith(".csv"):
+        if "sessions" in filename and "woocommerce" not in filename and filename.endswith(".csv"):
             sessions_file = os.path.join(directory, filename)
             break
 
@@ -145,9 +147,9 @@ def merge_with_sessions(directory):
             common_ids = set(merged_data[merge_column]).intersection(sessions_data[merge_column])
 
             if len(common_ids) >= 1000:
-                # Perform the merge with the filtered common IDs
+                # Merge with the filtered common IDs
                 merged_data = merged_data.merge(sessions_data, how="inner", on=merge_column)
-                break  # Break out of the loop after the first successful merge
+                break
 
     if len(merged_data) == 0:
         logging.warning("No matching rows found for merging with sessions data.")
@@ -172,7 +174,6 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.INFO)
 
-    # Run the merged users and usermeta files
     merge_with_sessions(args.directory_path)
 
     stop = timeit.default_timer()
