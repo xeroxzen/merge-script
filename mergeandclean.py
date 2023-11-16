@@ -8,8 +8,8 @@ import timeit
 from usermetacleaner import usermeta_cleaner
 
 
-def timestamp(length=4):
-    # Create timestamp tto use for unique filenames
+def random_string(length=4):
+    return ''.join(random.choices(string.ascii_letters, k=length))
     
 
 def find_cleaned_usermeta_file(directory, usermeta_filename):
