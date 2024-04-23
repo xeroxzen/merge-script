@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/../script/andile/.idea/andile.iml" filepath="$PROJECT_DIR$/../script/andile/.idea/andile.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/mergescript.iml" filepath="$PROJECT_DIR$/.idea/mergescript.iml" />
-    </modules>
-  </component>
-</project>
